@@ -1,0 +1,118 @@
+/* Registrierte Eigenschaften: die Mausposition macht die Kinder nicht mehr ungültig */
+@property --mx { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --my { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+/* =========================================================
+   Leistung (immer aktiv)
+   ========================================================= */
+.app[class] .blob { animation: none; filter: none; will-change: auto; }
+.app[class] .page { animation: page-in2 0.35s cubic-bezier(0.22, 0.9, 0.28, 1) both; }
+@keyframes page-in2 {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.app[class] .w { contain: layout style; }
+.app[class] .mw-bg { filter: blur(18px) saturate(1.2); }
+
+/* =========================================================
+   Design
+   ========================================================= */
+html { scrollbar-width: thin; scrollbar-color: rgba(128, 128, 140, 0.45) transparent; }
+.app[class] { -webkit-font-smoothing: antialiased; }
+.app[class] ::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.app[class] :focus-visible { outline-color: var(--accent); }
+
+.app[class] .large-title { font-size: clamp(32px, 4.8vw, 48px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.08; }
+.app[class] .head { margin-bottom: clamp(22px, 3vw, 34px); }
+.app[class] .eyebrow { font-size: 14px; }
+
+.app[class][data-theme][data-cards] .card {
+  border-radius: 28px;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.07), 0 18px 40px -28px rgba(0, 0, 0, 0.75);
+}
+.app[class][data-theme="light"][data-cards] .card {
+  box-shadow: inset 0 1px 0 #fff, 0 14px 34px -24px rgba(40, 60, 120, 0.35);
+}
+.app[class] .card-title { font-size: 15px; font-weight: 700; }
+.app[class] .row { min-height: 54px; }
+.app[class] .row + .row { border-top-width: 0.5px; }
+.app[class] .group-title { text-transform: none; letter-spacing: 0; font-size: 13px; margin-left: 14px; color: var(--text2); }
+.app[class] .tag { padding: 7px 14px; font-weight: 600; }
+.app[class] .tag:active,
+.app[class] .chip:active,
+.app[class] .strip-btn:active { transform: scale(0.96); }
+
+/* Widgets */
+.app[class] .w {
+  border-radius: 28px;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 50%);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 18px 38px -28px rgba(0, 0, 0, 0.85);
+}
+.app[class][data-theme="light"] .w { background-image: none; box-shadow: 0 12px 30px -22px rgba(30, 40, 80, 0.35); }
+.app[class] .wh b { font-size: 13px; letter-spacing: 0.01em; }
+.app[class] .wh-ic { border-radius: 9px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+.app[class] .wn { font-weight: 800; letter-spacing: -0.04em; }
+
+/* Tools: App-Symbole */
+.app[class] .ta-ic {
+  width: 46px;
+  height: 46px;
+  border-radius: 30%;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ic, var(--accent)) 68%, #fff), var(--ic, var(--accent)));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 8px 16px -8px var(--ic, var(--accent));
+}
+.app[class] .ta-ic.sm { width: 28px; height: 28px; border-radius: 9px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+.app[class] .tile-app { padding: 18px; border-radius: 28px; gap: 10px; }
+.app[class] .tile-app b { font-size: 16px; font-weight: 700; }
+.app[class] .hub-win { border-radius: 28px; }
+
+/* TabBar mit sanftem Verlauf dahinter */
+.app[class] .tabbar { bottom: max(14px, env(safe-area-inset-bottom)); }
+.app[class] .main::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 130px;
+  z-index: 15;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.38));
+}
+.app[class][data-theme="light"] .main::after {
+  background: linear-gradient(to bottom, rgba(233, 238, 251, 0), rgba(233, 238, 251, 0.8));
+}
+
+/* =========================================================
+   Sparsam: keine Unschärfe, keine Animationen
+   (auf dem Handy standardmäßig an)
+   ========================================================= */
+:root[data-perf="lite"] .app[class] * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root[data-perf="lite"] .app[class] .page,
+:root[data-perf="lite"] .app[class] .stagger > *,
+:root[data-perf="lite"] .app[class] .gs { animation: none; }
+:root[data-perf="lite"] .app[class] .w,
+:root[data-perf="lite"] .app[class][data-theme][data-cards] .card { box-shadow: none; }
+:root[data-perf="lite"] .app[class] .mw-bg { filter: none; transform: none; }
+:root[data-perf="lite"] .app[class] .ring-fg { filter: none; }
+:root[data-perf="lite"] .app[class] .main::after { display: none; }
+
+/* Ersatz für das Glas der Glisse-Elemente, wenn die Unschärfe aus ist */
+:root[data-perf="lite"] .app[class] .tabbar [aria-label="Hauptnavigation"] {
+  background: rgba(30, 30, 34, 0.9);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.12), 0 10px 26px -12px rgba(0, 0, 0, 0.8);
+}
+:root[data-perf="lite"] .app[class][data-theme="light"] .tabbar [aria-label="Hauptnavigation"] {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 0.5px rgba(60, 60, 67, 0.12), 0 10px 26px -12px rgba(30, 40, 80, 0.4);
+}
+:root[data-perf="lite"] .app[class] [class*="lg-"][class*="lens"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+:root[data-perf="lite"] .app[class][data-theme="light"] [class*="lg-"][class*="lens"] {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
