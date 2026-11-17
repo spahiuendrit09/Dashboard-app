@@ -1,0 +1,56 @@
+/* Timer-Seite */
+.tm-row { gap: 10px; }
+.tm-time { flex: none; min-width: 64px; text-align: right; font-size: 20px; font-weight: 300; font-variant-numeric: tabular-nums; }
+.tm-done .tm-time { color: var(--red); font-weight: 600; }
+.tm-done .row-title { color: var(--red); }
+
+/* Rechnung */
+.inv-item { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; padding: 10px 0; border-top: 1px solid var(--sep); }
+.inv-item:first-child { border-top: 0; padding-top: 0; }
+.inv-item .t { grid-column: 1 / -1; }
+.inv-item .sel { height: 44px; }
+
+/* Karteikarten */
+.study { display: flex; flex-direction: column; gap: 14px; }
+.study-card { display: flex; flex-direction: column; justify-content: center; gap: 16px; min-height: 180px; padding: 24px; text-align: center; background: var(--card-hover); border-radius: 22px; }
+.study-q { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.study-a { padding-top: 16px; font-size: 20px; color: var(--accent); border-top: 1px solid var(--sep); animation: rise 0.3s var(--ease) both; }
+
+/* Widgets: Timer */
+.tmw-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; min-height: 0; overflow: hidden; }
+.tmw-row { display: flex; align-items: center; gap: 10px; }
+.tmw-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tmw-t b { font-size: 26px; font-weight: 300; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.tmw-row.done .tmw-t b { color: var(--red); font-size: 20px; font-weight: 600; }
+.tmw-t span { font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmw-b { flex: none; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; color: var(--text); background: var(--card-hover); border: 0; border-radius: 50%; cursor: pointer; transition: transform 0.2s var(--spring); }
+.tmw-b:active { transform: scale(0.88); }
+.tmw-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 8px; }
+.tmw-presets .tag { display: inline-flex; align-items: center; gap: 4px; }
+.wn.sww { margin-top: 10px; font-size: clamp(24px, 2.4vw, 32px); font-weight: 300; }
+
+/* Widgets: Abos */
+.sbw-list { display: flex; flex-direction: column; margin-top: auto; }
+.sbw-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--sep); font-size: 14px; }
+.sbw-row span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sbw-row em { font-style: normal; font-size: 12px; color: var(--text2); }
+
+/* Widgets: Countdown und Karteikarten */
+.cdw { display: flex; flex-direction: column; margin-top: auto; min-width: 0; }
+.cdw .wn { font-size: clamp(36px, 3.6vw, 52px); }
+.cdw b { margin-top: 4px; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Widgets: Monatskalender */
+.mc-head { font-size: 16px; font-weight: 700; text-transform: capitalize; color: #ff3b30; }
+.mc-head span { font-weight: 400; color: var(--text2); }
+.mc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-top: 8px; flex: 1; align-content: space-between; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+.mc-dow { color: var(--text3); font-size: 10px; font-weight: 600; }
+.mc-d { position: relative; display: grid; place-items: center; aspect-ratio: 1; max-height: 28px; justify-self: center; width: 100%; border-radius: 50%; }
+.mc-d.today { color: #fff; background: #ff3b30; font-weight: 700; }
+.mc-d.ev:not(.today)::after { content: ""; position: absolute; bottom: 1px; width: 4px; height: 4px; border-radius: 50%; background: #ff9f0a; }
+
+/* Widgets: Weltzeit */
+.wd-list { display: flex; flex-direction: column; margin-top: 8px; }
+.wd-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-top: 1px solid var(--sep); font-size: 15px; }
+.wd-row:first-child { border-top: 0; }
+.wd-row b { font-size: 19px; font-weight: 300; font-variant-numeric: tabular-nums; }

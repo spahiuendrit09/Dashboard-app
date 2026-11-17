@@ -85,7 +85,6 @@ html { scrollbar-width: thin; scrollbar-color: rgba(128, 128, 140, 0.45) transpa
 
 /* =========================================================
    Sparsam: keine Unschärfe, keine Animationen
-   (auf dem Handy standardmäßig an)
    ========================================================= */
 :root[data-perf="lite"] .app[class] * {
   backdrop-filter: none !important;
@@ -98,21 +97,23 @@ html { scrollbar-width: thin; scrollbar-color: rgba(128, 128, 140, 0.45) transpa
 :root[data-perf="lite"] .app[class][data-theme][data-cards] .card { box-shadow: none; }
 :root[data-perf="lite"] .app[class] .mw-bg { filter: none; transform: none; }
 :root[data-perf="lite"] .app[class] .ring-fg { filter: none; }
-:root[data-perf="lite"] .app[class] .main::after { display: none; }
+/* Weniger Bewegung: System-Einstellung respektieren */
+@media (prefers-reduced-motion: reduce) {
+  .app[class] *, .app[class] *::before, .app[class] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
-/* Ersatz für das Glas der Glisse-Elemente, wenn die Unschärfe aus ist */
-:root[data-perf="lite"] .app[class] .tabbar [aria-label="Hauptnavigation"] {
-  background: rgba(30, 30, 34, 0.9);
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.12), 0 10px 26px -12px rgba(0, 0, 0, 0.8);
+/* Kartenstil "Fest": die Karten sind fast undurchsichtig, das Weichzeichnen dahinter sieht man kaum,
+   kostet aber auf jeder Karte bei jedem Scrollen Rechenzeit. */
+.app[class][data-cards="solid"] .card,
+.app[class][data-cards="solid"] .tile,
+.app[class][data-cards="solid"] .sum {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
-:root[data-perf="lite"] .app[class][data-theme="light"] .tabbar [aria-label="Hauptnavigation"] {
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: inset 0 0 0 0.5px rgba(60, 60, 67, 0.12), 0 10px 26px -12px rgba(30, 40, 80, 0.4);
-}
-:root[data-perf="lite"] .app[class] [class*="lg-"][class*="lens"] {
-  background: rgba(255, 255, 255, 0.16) !important;
-}
-:root[data-perf="lite"] .app[class][data-theme="light"] [class*="lg-"][class*="lens"] {
-  background: rgba(0, 0, 0, 0.08) !important;
-}
+
+/* Das Rauschen über dem Hintergrund ist mit 7 % kaum zu sehen, der Überblend-Modus kostet aber in jedem Bild Rechenzeit. */
+.app[class] .wallpaper::after { display: none; }

@@ -1,0 +1,43 @@
+/* Atmen */
+.br-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 240px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  padding: 0;
+  color: #fff;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.br-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 50%; }
+.br-ring { position: absolute; inset: 4%; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+.br-orb {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 60%, #fff), var(--accent));
+  box-shadow: 0 0 50px -6px color-mix(in srgb, var(--accent) 60%, transparent);
+  will-change: transform;
+}
+.br-lbl { position: relative; font-size: 17px; font-weight: 700; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); }
+.brw { flex: 1; min-height: 0; display: grid; place-items: center; }
+.brw .br-wrap { width: auto; height: 100%; max-width: 100%; }
+
+/* Gesundheit */
+.bmi { position: relative; height: 10px; margin: 12px 0 6px; border-radius: 5px; background: linear-gradient(90deg, #0a84ff 0%, #30d158 25%, #ffd60a 55%, #ff453a 100%); }
+.bmi i { position: absolute; top: -4px; width: 4px; height: 18px; margin-left: -2px; border-radius: 2px; background: var(--text); box-shadow: 0 0 0 2px var(--card); transition: left 0.4s var(--ease); }
+
+/* Teilen */
+.owe { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--sep); font-size: 15px; }
+.owe:first-child { border-top: 0; }
+.owe b { margin-left: auto; font-variant-numeric: tabular-nums; }
+.bal-pos { color: var(--green); }
+.bal-neg { color: var(--red); }
+
+/* Geburtstage */
+.bd-n { flex: none; min-width: 52px; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.bd-n b { font-size: 24px; font-weight: 300; color: var(--accent); font-variant-numeric: tabular-nums; }
+.bd-n span { font-size: 11px; color: var(--text3); }

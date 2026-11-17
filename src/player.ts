@@ -20,10 +20,10 @@ interface FsDirHandle {
 }
 type PickerWindow = { showDirectoryPicker?: (o?: { mode?: "read" }) => Promise<FsDirHandle> };
 
+const COLLATOR = new Intl.Collator("de", { numeric: true });
 const AUDIO = /\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|weba|webm)$/i;
-const LOCAL_NAME = "Auf dem Gerät";
 
-/* ---------- IndexedDB: merkt sich Ordner und Dateien ---------- */
+/* ---------- IndexedDB: merkt sich den Musikordner ---------- */
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open("ios-dashboard", 1);
@@ -43,11 +43,9 @@ async function kvGet<T>(key: string): Promise<T | undefined> {
 async function kvSet(key: string, value: unknown): Promise<void> {
   const d = await openDb();
   return new Promise((resolve, reject) => {
-    const tx = d.transaction("kv", "readwrite");
-    tx.objectStore("kv").put(value, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    const r = d.transaction("kv", "readwrite").objectStore("kv").put(value, key);
+    r.onsuccess = () => resolve();
+    r.onerror = () => reject(r.error);
   });
 }
 async function kvDel(key: string): Promise<void> {
@@ -120,7 +118,7 @@ async function readTags(file: File, wantCover: boolean): Promise<Tags> {
     if (head[0] !== 0x49 || head[1] !== 0x44 || head[2] !== 0x33) return out;
     const ver = head[3] ?? 3;
     const size = syncsafe(head, 6);
-    const buf = new Uint8Array(await file.slice(10, 10 + Math.min(size, 6000000)).arrayBuffer());
+    const buf = new Uint8Array(await file.slice(10, 10 + Math.min(size, wantCover ? 6000000 : 131072)).arrayBuffer());
     const hl = ver === 2 ? 6 : 10;
     let p = 0;
     while (p + hl < buf.length) {
@@ -298,7 +296,7 @@ export function useMusic(notify: (title: string, body: string) => void) {
       setPlaying(false);
       const list = files
         .map(toTrack)
-        .sort((a, b) => a.file.name.localeCompare(b.file.name, "de", { numeric: true }));
+        .sort((a, b) => COLLATOR.compare(a.file.name, b.file.name));
       const r = rebuild(shuffleRef.current, list.length, undefined);
       setTracks(list);
       setOrder(r.order);
@@ -317,13 +315,21 @@ export function useMusic(notify: (title: string, body: string) => void) {
         );
       void (async () => {
         let n = 0;
+        let lastFlush = performance.now();
         for (const t of list) {
           if (gen !== genRef.current) return;
           const tg = await readTags(t.file, false);
           if (gen !== genRef.current) return;
           if (tg.title || tg.artist || tg.album) found.set(t.id, tg);
           n++;
-          if (n % 25 === 0) flush();
+          if (n % 20 === 0) {
+            /* Dem Browser Luft lassen, damit nichts ruckelt */
+            await new Promise<void>((r) => setTimeout(r, 0));
+            if (performance.now() - lastFlush > 1500) {
+              flush();
+              lastFlush = performance.now();
+            }
+          }
         }
         flush();
       })();
@@ -331,27 +337,22 @@ export function useMusic(notify: (title: string, body: string) => void) {
     [loadTrack],
   );
 
-  /* Beim Start: erst den gespeicherten Ordner, sonst die auf dem Gerät gespeicherten Dateien */
+  /* Gespeicherten Ordner beim Start wieder öffnen */
   useEffect(() => {
     let dead = false;
     void (async () => {
       try {
         const dir = await kvGet<FsDirHandle>("music-dir");
-        if (dead) return;
-        if (dir) {
-          dirRef.current = dir;
-          setDirName(dir.name);
-          const perm = dir.queryPermission ? await dir.queryPermission({ mode: "read" }) : "prompt";
-          if (perm === "granted") {
-            const files = await scan(dir);
-            if (!dead) setLibrary(files, dir.name);
-          } else setNeedsAccess(true);
-          return;
-        }
-        const saved = await kvGet<File[]>("music-files");
-        if (!dead && Array.isArray(saved) && saved.length > 0) setLibrary(saved, LOCAL_NAME);
+        if (!dir || dead) return;
+        dirRef.current = dir;
+        setDirName(dir.name);
+        const perm = dir.queryPermission ? await dir.queryPermission({ mode: "read" }) : "prompt";
+        if (perm === "granted") {
+          const files = await scan(dir);
+          if (!dead) setLibrary(files, dir.name);
+        } else setNeedsAccess(true);
       } catch {
-        /* nichts gespeichert */
+        /* kein Ordner gespeichert */
       }
     })();
     return () => {
@@ -368,7 +369,6 @@ export function useMusic(notify: (title: string, body: string) => void) {
       const files = await scan(dir);
       dirRef.current = dir;
       void kvSet("music-dir", dir).catch(() => {});
-      void kvDel("music-files").catch(() => {});
       setNeedsAccess(false);
       setLibrary(files, dir.name);
       setStatus(files.length > 0 ? "" : "Keine Musikdateien gefunden.");
@@ -396,18 +396,6 @@ export function useMusic(notify: (title: string, body: string) => void) {
     }
   }, [setLibrary]);
 
-  /** Speichert ausgewählte Dateien auf dem Gerät, damit sie nach dem Neustart wieder da sind (nötig auf dem iPhone). */
-  const saveLocal = useCallback(async (files: File[]) => {
-    try {
-      void navigator.storage?.persist?.().catch(() => {});
-      await kvSet("music-files", files);
-      await kvDel("music-dir").catch(() => {});
-      setStatus("");
-    } catch {
-      setStatus("Die Musik läuft, ließ sich aber nicht dauerhaft speichern (zu wenig Platz). Sie ist nach dem Schließen weg.");
-    }
-  }, []);
-
   const addFiles = useCallback(
     (list: File[]) => {
       const files = list.filter((f) => f.type.startsWith("audio/") || AUDIO.test(f.name));
@@ -415,18 +403,17 @@ export function useMusic(notify: (title: string, body: string) => void) {
         setStatus("Keine Musikdateien gefunden.");
         return;
       }
+      const rel = (files[0] as File & { webkitRelativePath?: string }).webkitRelativePath;
       dirRef.current = null;
       setNeedsAccess(false);
-      setLibrary(files, LOCAL_NAME);
-      setStatus("Speichere auf dem Gerät …");
-      void saveLocal(files);
+      setLibrary(files, rel ? (rel.split("/")[0] ?? "Ordner") : "Ausgewählte Dateien");
+      setStatus("");
     },
-    [setLibrary, saveLocal],
+    [setLibrary],
   );
 
   const forget = useCallback(() => {
     void kvDel("music-dir").catch(() => {});
-    void kvDel("music-files").catch(() => {});
     dirRef.current = null;
     setNeedsAccess(false);
     setLibrary([], "");

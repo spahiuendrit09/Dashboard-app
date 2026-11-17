@@ -1,63 +1,137 @@
 /* =========================================================
-   Handy-App-Verhalten
+   Mobile-Anpassungen. Wird in App.tsx ZULETZT importiert,
+   damit diese Regeln die anderen CSS-Dateien überschreiben.
    ========================================================= */
-html {
-  -webkit-text-size-adjust: 100%;
-  overscroll-behavior-y: none;
-}
+
+/* Nie breiter als der Bildschirm */
+html,
 body {
-  overscroll-behavior-y: none;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-.app[class] {
-  min-height: 100vh;
-  min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
-/* Platz für Statusleiste, Notch und Dynamic Island des echten Handys */
-.app[class] .content {
-  padding-top: calc(env(safe-area-inset-top, 0px) + clamp(64px, 9vw, 92px));
-  padding-left: max(clamp(16px, 3.5vw, 40px), env(safe-area-inset-left, 0px));
-  padding-right: max(clamp(16px, 3.5vw, 40px), env(safe-area-inset-right, 0px));
+.app,
+.main,
+.content,
+.page,
+.split,
+.cols,
+.col,
+.split-side,
+.toolbar,
+.grow,
+.card {
+  min-width: 0;
+  max-width: 100%;
 }
 
-@media (pointer: coarse) {
-  /* 16 px verhindert, dass iOS beim Tippen ins Eingabefeld hineinzoomt */
-  .app[class] input,
-  .app[class] select,
-  .app[class] textarea {
-    font-size: 16px;
+.seg.filter {
+  width: 240px;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .main {
+    padding-inline: 12px;
   }
-  /* Fühlt sich wie eine App an: kein Text-Markieren aus Versehen */
-  .app[class] {
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
+
+  /* Titel und Bereichs-Auswahl untereinander */
+  .head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
-  .app[class] input,
-  .app[class] textarea,
-  .app[class] .pw,
-  .app[class] .mono,
-  .app[class] .note-area {
-    -webkit-user-select: text;
-    user-select: text;
+
+  /* 6 Tabs: seitlich wischbar statt gequetscht */
+  .seg.wider {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .seg.wider::-webkit-scrollbar {
+    display: none;
+  }
+  .seg.wider > * {
+    min-width: max-content;
+  }
+
+  /* Suche oben, Filter darunter, beide volle Breite */
+  .toolbar.stack {
+    flex-wrap: wrap;
+  }
+  .toolbar.stack .grow {
+    flex: 1 1 100%;
+  }
+  .seg.filter {
+    width: 100%;
+  }
+
+  /* Spalten untereinander */
+  .split,
+  .cols {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .split-side {
+    width: 100%;
+  }
+  .hgrid {
+    grid-template-columns: 1fr;
+  }
+
+  .large-title {
+    font-size: 30px;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: block;
+  }
+
+  /* Platz für die Tab-Leiste unten */
+  .content {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom));
   }
 }
 
-/* Kein „hängendes" Hover-Aussehen nach dem Antippen */
-@media (hover: none) {
-  .app[class] .tile-app:hover,
-  .app[class] .strip-btn:hover,
-  .app[class] .chip:hover,
-  .app[class] .tag:hover,
-  .app[class] .tile:hover {
-    transform: none;
-  }
+/* =========================================================
+   Dock: immer am unteren Rand des SICHTBAREN Bildschirms.
+   Das Dock steckt per Portal direkt in <body> (siehe App.tsx),
+   darum zählt position: fixed immer relativ zum Bildschirm.
+   ========================================================= */
+
+.dock-root {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  /* 12 px Abstand, auf iPhones zusätzlich die Home-Indicator-Zone */
+  padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none; /* nur das Dock selbst fängt Klicks ab */
 }
 
-@media (display-mode: standalone) {
-  .app[class] .tabbar {
-    bottom: max(10px, env(safe-area-inset-bottom));
+.dock-root .tabbar {
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  width: min(100%, 420px);
+  pointer-events: auto;
+}
+
+@media (max-width: 720px) {
+  /* Inhalt bekommt unten Platz, damit nichts hinter dem Dock klebt */
+  .content {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   }
 }

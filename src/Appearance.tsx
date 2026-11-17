@@ -1,82 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import type { BgState as Bg } from "./theme";
 import { Button, SegmentedControl, Slider } from "glisse";
-import { DeviceMobile, Trash, UploadSimple } from "@phosphor-icons/react";
+import { Trash, UploadSimple } from "@phosphor-icons/react";
 import { getPerf, setPerf } from "./perf";
 import type { PerfMode } from "./perf";
-import { promptInstall, useInstall } from "./pwa";
 import { ACCENTS, PRESETS, compressImage } from "./theme";
 import type { BgState } from "./theme";
-
-const mb = (n: number) => `${Math.round(n / 1048576).toLocaleString("de-AT")} MB`;
-
-/** Als App installieren und Speicher dauerhaft sichern. */
-function AppBlock() {
-  const state = useInstall();
-  const [usage, setUsage] = useState("");
-  const [kept, setKept] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    navigator.storage
-      ?.estimate?.()
-      .then((e) => {
-        if (e.usage !== undefined && e.quota !== undefined) setUsage(`${mb(e.usage)} von ${mb(e.quota)} belegt`);
-      })
-      .catch(() => {});
-    navigator.storage
-      ?.persisted?.()
-      .then(setKept)
-      .catch(() => {});
-  }, []);
-
-  const keep = () => {
-    navigator.storage
-      ?.persist?.()
-      .then(setKept)
-      .catch(() => {});
-  };
-
-  return (
-    <div>
-      <div className="meter-head">
-        <span>
-          <DeviceMobile size={14} weight="fill" style={{ verticalAlign: "-2px" }} /> App
-        </span>
-        <b>{state === "installed" ? "Installiert" : "Im Browser"}</b>
-      </div>
-
-      {state === "installed" && <div className="row-sub">Du nutzt gerade die installierte App.</div>}
-      {state === "ready" && (
-        <Button icon={<DeviceMobile size={18} weight="bold" />} onClick={() => void promptInstall()}>
-          App installieren
-        </Button>
-      )}
-      {state === "ios" && (
-        <div className="row-sub">
-          iPhone und iPad: Öffne die Seite in Safari, tippe unten auf „Teilen“ und dann auf „Zum Home-Bildschirm“.
-        </div>
-      )}
-      {state === "other" && (
-        <div className="row-sub">
-          Chrome und Edge: Tippe in der Adressleiste auf das Installieren-Symbol oder im Menü auf „App installieren“.
-          Android: Menü, dann „Zum Startbildschirm hinzufügen“.
-        </div>
-      )}
-
-      <div style={{ marginTop: 12 }}>
-        {usage && <div className="row-sub">{usage}</div>}
-        {kept === false && (
-          <div style={{ marginTop: 8 }}>
-            <Button onClick={keep}>Speicher dauerhaft sichern</Button>
-            <div className="row-sub" style={{ marginTop: 6 }}>
-              Verhindert, dass der Browser deine Daten und deine gespeicherte Musik bei wenig Platz löscht.
-            </div>
-          </div>
-        )}
-        {kept === true && <div className="row-sub">Dein Speicher ist dauerhaft gesichert.</div>}
-      </div>
-    </div>
-  );
-}
 
 export function Appearance({
   bg,
@@ -94,6 +23,22 @@ export function Appearance({
   const [busy, setBusy] = useState(false);
   const [perf, setPerfState] = useState<PerfMode>(getPerf);
   const isImage = bg.mode === "image" && image !== "";
+
+  /* Slider: höchstens eine Änderung pro Bild, sonst wird die ganze App bei jedem Pixel neu gezeichnet */
+  const bgRef = useRef(bg);
+  bgRef.current = bg;
+  const pend = useRef<Bg | null>(null);
+  const raf = useRef(0);
+  const patch = (p: Partial<Bg>) => {
+    pend.current = { ...(pend.current ?? bgRef.current), ...p };
+    if (raf.current) return;
+    raf.current = requestAnimationFrame(() => {
+      raf.current = 0;
+      const n = pend.current;
+      pend.current = null;
+      if (n) setBg(n);
+    });
+  };
 
   const onFile = async (file: File) => {
     setErr("");
@@ -183,7 +128,7 @@ export function Appearance({
             <span>Abdunkeln</span>
             <b>{bg.dim}%</b>
           </div>
-          <Slider aria-label="Abdunkeln" value={Math.round(bg.dim / 0.8)} onValueChange={(v: number) => setBg({ ...bg, dim: Math.round(v * 0.8) })} />
+          <Slider aria-label="Abdunkeln" value={Math.round(bg.dim / 0.8)} onValueChange={(v: number) => patch({ dim: Math.round(v * 0.8) })} />
         </div>
         {isImage && (
           <div>
@@ -191,7 +136,7 @@ export function Appearance({
               <span>Weichzeichnen</span>
               <b>{bg.blur} px</b>
             </div>
-            <Slider aria-label="Weichzeichnen" value={Math.round(bg.blur / 0.3)} onValueChange={(v: number) => setBg({ ...bg, blur: Math.round(v * 0.3) })} />
+            <Slider aria-label="Weichzeichnen" value={Math.round(bg.blur / 0.3)} onValueChange={(v: number) => patch({ blur: Math.round(v * 0.3) })} />
           </div>
         )}
         <div>
@@ -199,7 +144,7 @@ export function Appearance({
             <span>Glas-Stärke der Karten</span>
             <b>{bg.glass}%</b>
           </div>
-          <Slider aria-label="Glas-Stärke" value={bg.glass} onValueChange={(v: number) => setBg({ ...bg, glass: Math.round(v) })} />
+          <Slider aria-label="Glas-Stärke" value={bg.glass} onValueChange={(v: number) => patch({ glass: Math.round(v) })} />
         </div>
         <div>
           <div className="meter-head">
@@ -237,11 +182,9 @@ export function Appearance({
             }}
           />
           <div className="row-sub" style={{ marginTop: 8 }}>
-            „Sparsam“ schaltet Unschärfe-Effekte und Animationen ab. Auf dem Handy ist das der Standard, damit alles flüssig
-            läuft.
+            „Sparsam“ schaltet Unschärfe-Effekte und Animationen ab. Nutze es, wenn die App auf deinem Gerät ruckelt.
           </div>
         </div>
-        <AppBlock />
       </div>
     </div>
   );
