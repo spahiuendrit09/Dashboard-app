@@ -10,7 +10,7 @@
   "dependencies": {
     "@capacitor/android": "^6.0.0",
     "@capacitor/core": "^6.0.0",
-    "lucide-react": "^0.450.0",
+    "lucide-react": "latest",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
