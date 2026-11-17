@@ -1,0 +1,63 @@
+/* =========================================================
+   Handy-App-Verhalten
+   ========================================================= */
+html {
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
+body {
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.app[class] {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Platz für Statusleiste, Notch und Dynamic Island des echten Handys */
+.app[class] .content {
+  padding-top: calc(env(safe-area-inset-top, 0px) + clamp(64px, 9vw, 92px));
+  padding-left: max(clamp(16px, 3.5vw, 40px), env(safe-area-inset-left, 0px));
+  padding-right: max(clamp(16px, 3.5vw, 40px), env(safe-area-inset-right, 0px));
+}
+
+@media (pointer: coarse) {
+  /* 16 px verhindert, dass iOS beim Tippen ins Eingabefeld hineinzoomt */
+  .app[class] input,
+  .app[class] select,
+  .app[class] textarea {
+    font-size: 16px;
+  }
+  /* Fühlt sich wie eine App an: kein Text-Markieren aus Versehen */
+  .app[class] {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .app[class] input,
+  .app[class] textarea,
+  .app[class] .pw,
+  .app[class] .mono,
+  .app[class] .note-area {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
+/* Kein „hängendes" Hover-Aussehen nach dem Antippen */
+@media (hover: none) {
+  .app[class] .tile-app:hover,
+  .app[class] .strip-btn:hover,
+  .app[class] .chip:hover,
+  .app[class] .tag:hover,
+  .app[class] .tile:hover {
+    transform: none;
+  }
+}
+
+@media (display-mode: standalone) {
+  .app[class] .tabbar {
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}

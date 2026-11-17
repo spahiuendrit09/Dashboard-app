@@ -9,12 +9,7 @@ let deferred: Prompt | null = null;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 
-/** true, wenn die Seite in der nativen Android-App (Capacitor) läuft. */
-export const isNative = () =>
-  (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.() === true;
-
 export const isStandalone = () =>
-  isNative() ||
   window.matchMedia("(display-mode: standalone)").matches ||
   (navigator as unknown as { standalone?: boolean }).standalone === true;
 
@@ -74,7 +69,7 @@ if (typeof window !== "undefined") {
 }
 
 export function registerSW() {
-  if (!("serviceWorker" in navigator) || import.meta.env.DEV || isNative()) return;
+  if (!("serviceWorker" in navigator) || import.meta.env.DEV) return;
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => {
       /* z. B. in der nativen App nicht verfügbar */
